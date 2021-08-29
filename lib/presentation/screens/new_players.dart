@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dummy_score/presentation/layouts/comfort_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';

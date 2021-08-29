@@ -39,7 +39,7 @@ class GameModes extends StatelessWidget {
     var createTile = tileCreator(textTheme);
 
     toNewPlayers(String mode) {
-      Navigator.pushNamed(context, RouteNames.NewPlayers,
+      Navigator.pushNamed(context, RouteNames.playerSelection,
           arguments: NewPlayersScreenArgs(gameMode: mode));
     }
 

@@ -13,7 +13,7 @@ class BoardHome extends StatelessWidget {
           child: Center(
             child: ElevatedButton(
               onPressed: () =>
-                  Navigator.pushNamed(context, RouteNames.GameModes),
+                  Navigator.pushNamed(context, RouteNames.gameModes),
               child: const Text('START NEW GAME'),
             ),
           )),
