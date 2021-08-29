@@ -81,6 +81,8 @@ class ChipSelectionControl extends StatelessWidget {
               child: TextFormField(
                 controller: valueController,
                 focusNode: valueFocusNode,
+                autocorrect: false,
+                keyboardType: TextInputType.name,
                 textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(border: InputBorder.none),
                 textInputAction: TextInputAction.done,
@@ -88,15 +90,19 @@ class ChipSelectionControl extends StatelessWidget {
                   selectionState.clearMode = value.isEmpty;
                 },
                 onFieldSubmitted: (value) {
-                  if (value.isNotEmpty && controller.canAdd(value)) {
-                    externalFocusNode?.requestFocus();
-                    valueController.clear();
-                    selectionState.clearMode = true;
+                  externalFocusNode?.requestFocus();
+                  valueController.clear();
+                  selectionState.clearMode = true;
 
-                    Timer.run(() {
-                      controller.add(value.trim());
-                    });
-                  }
+                  final trimmedValue = value.trim();
+
+                  Timer.run(() {
+                    if (controller.canAdd(trimmedValue)) {
+                      controller.add(trimmedValue);
+                    } else {
+                      valueFocusNode.requestFocus();
+                    }
+                  });
                 },
               ),
             ),
@@ -121,7 +127,7 @@ class ChipSelectionControl extends StatelessWidget {
           isEmpty: valueController.text.isEmpty && (chips?.isEmpty ?? true),
           child: Wrap(
             runAlignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.start,
             alignment: WrapAlignment.center,
             spacing: 8.0,
             runSpacing: 8.0,
