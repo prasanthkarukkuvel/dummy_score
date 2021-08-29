@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,20 +21,16 @@ class ChipSelectionState {
 }
 
 class ChipSelectionControl extends StatelessWidget {
-  final void Function(ChipInputModel chip) onRemoved;
-  final void Function(String value) onAdd;
-  final void Function() popLast;
   final ChipSelectionState selectionState;
   final FocusNode? externalFocusNode;
   final List<ChipInputModel>? chips;
+  final ChipSelectionController controller;
 
   ChipSelectionControl(
       {Key? key,
       required this.chips,
-      required this.onRemoved,
-      required this.onAdd,
+      required this.controller,
       required this.selectionState,
-      required this.popLast,
       required this.externalFocusNode})
       : super(key: key);
 
@@ -55,7 +52,10 @@ class ChipSelectionControl extends StatelessWidget {
                       style: theme.textTheme.headline6,
                     ),
                     onDeleted: () {
-                      onRemoved(chip);
+                      if (valueFocusNode.hasFocus) {
+                        externalFocusNode?.requestFocus();
+                      }
+                      controller.remove(chip);
                     },
                   ),
                 ))
@@ -72,8 +72,9 @@ class ChipSelectionControl extends StatelessWidget {
               onKey: (event) {
                 if (event.runtimeType == RawKeyUpEvent &&
                     event.logicalKey == LogicalKeyboardKey.backspace) {
-                  if (selectionState.clearMode) {
-                    popLast();
+                  if (selectionState.clearMode && controller.isNotEmpty) {
+                    externalFocusNode?.requestFocus();
+                    controller.pop();
                   }
                 }
               },
@@ -87,9 +88,14 @@ class ChipSelectionControl extends StatelessWidget {
                   selectionState.clearMode = value.isEmpty;
                 },
                 onFieldSubmitted: (value) {
-                  if (value.isNotEmpty) {
+                  if (value.isNotEmpty && controller.canAdd(value)) {
+                    externalFocusNode?.requestFocus();
                     valueController.clear();
-                    onAdd(value);
+                    selectionState.clearMode = true;
+
+                    Timer.run(() {
+                      controller.add(value.trim());
+                    });
                   }
                 },
               ),
@@ -99,6 +105,7 @@ class ChipSelectionControl extends StatelessWidget {
 
     if ((externalFocusNode?.hasFocus ?? false) || (chips?.isEmpty ?? false)) {
       valueFocusNode.requestFocus();
+      valueController.clear();
     }
 
     return GestureDetector(
@@ -126,6 +133,48 @@ class ChipSelectionControl extends StatelessWidget {
   }
 }
 
+class ChipSelectionController {
+  final ReactiveFormFieldState<List<ChipInputModel>, List<ChipInputModel>>
+      field;
+  ChipSelectionController({required this.field});
+
+  void add(String value) {
+    List<ChipInputModel> fieldValue = List.from(field.value ?? []);
+
+    if (value.isNotEmpty &&
+        fieldValue.where((element) => element.id == value).isEmpty) {
+      fieldValue.add(ChipInputModel(id: value, label: value));
+
+      field.didChange(fieldValue);
+    }
+  }
+
+  void remove(chip) {
+    field.didChange(
+        (field.value ?? []).where((element) => element.id != chip.id).toList());
+  }
+
+  void pop() {
+    List<ChipInputModel> fieldValue = List.from(field.value ?? []);
+
+    if (fieldValue.isNotEmpty) {
+      fieldValue.removeLast();
+      field.didChange(fieldValue);
+    }
+  }
+
+  bool get isNotEmpty {
+    return List.from(field.value ?? []).isNotEmpty;
+  }
+
+  bool canAdd(String value) {
+    return value.isNotEmpty &&
+        List.from(field.value ?? [])
+            .where((element) => element.id == value)
+            .isEmpty;
+  }
+}
+
 class ReactiveChipSelectionControl
     extends ReactiveFormField<List<ChipInputModel>, List<ChipInputModel>> {
   ReactiveChipSelectionControl(
@@ -139,38 +188,10 @@ class ReactiveChipSelectionControl
                     List<ChipInputModel>>
                 field) {
               return ChipSelectionControl(
-                externalFocusNode: externalFocusNode,
-                chips: field.value,
-                selectionState: ChipSelectionState(clearMode: true),
-                onAdd: (value) {
-                  List<ChipInputModel> fieldValue =
-                      List.from(field.value ?? []);
-
-                  if (value.isNotEmpty &&
-                      fieldValue
-                          .where((element) => element.id == value)
-                          .isEmpty) {
-                    externalFocusNode?.requestFocus();
-                    fieldValue.add(ChipInputModel(id: value, label: value));
-
-                    field.didChange(fieldValue);
-                  } else if (value.isEmpty) {}
-                },
-                onRemoved: (chip) => {
-                  field.didChange((field.value ?? [])
-                      .where((element) => element.id != chip.id)
-                      .toList())
-                },
-                popLast: () {
-                  List<ChipInputModel> fieldValue =
-                      List.from(field.value ?? []);
-
-                  if (fieldValue.isNotEmpty) {
-                    fieldValue.removeLast();
-                    field.didChange(fieldValue);
-                  }
-                },
-              );
+                  externalFocusNode: externalFocusNode,
+                  chips: field.value,
+                  selectionState: ChipSelectionState(clearMode: true),
+                  controller: ChipSelectionController(field: field));
             });
 
   @override
