@@ -90,19 +90,20 @@ class ChipSelectionControl extends StatelessWidget {
                   selectionState.clearMode = value.isEmpty;
                 },
                 onFieldSubmitted: (value) {
-                  externalFocusNode?.requestFocus();
                   valueController.clear();
                   selectionState.clearMode = true;
 
                   final trimmedValue = value.trim();
 
-                  Timer.run(() {
-                    if (controller.canAdd(trimmedValue)) {
+                  if (controller.canAdd(trimmedValue)) {
+                    externalFocusNode?.requestFocus();
+
+                    Timer.run(() {
                       controller.add(trimmedValue);
-                    } else {
-                      valueFocusNode.requestFocus();
-                    }
-                  });
+                    });
+                  } else if (trimmedValue.isNotEmpty) {
+                    valueFocusNode.requestFocus();
+                  }
                 },
               ),
             ),
