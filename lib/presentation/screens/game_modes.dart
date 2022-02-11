@@ -4,8 +4,6 @@ import 'package:dummy_score/presentation/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-import 'new_players.dart';
-
 class GameModes extends StatelessWidget {
   const GameModes({Key? key}) : super(key: key);
 
@@ -39,8 +37,7 @@ class GameModes extends StatelessWidget {
     var createTile = tileCreator(textTheme);
 
     toNewPlayers(String mode) {
-      Navigator.pushNamed(context, RouteNames.playerSelection,
-          arguments: NewPlayersScreenArgs(gameMode: mode));
+      Navigator.pushNamed(context, RouteNames.playerSelection);
     }
 
     return ComfortLayout(title: 'Game Mode', children: <Widget>[

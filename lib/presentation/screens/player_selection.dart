@@ -1,5 +1,5 @@
 import 'package:dummy_score/presentation/layouts/comfort_layout.dart';
-import 'package:dummy_score/presentation/widgets/chip_selection_control.dart';
+import 'package:dummy_score/presentation/widgets/chip_selection_control/chip_selection_control.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:reactive_forms/reactive_forms.dart';

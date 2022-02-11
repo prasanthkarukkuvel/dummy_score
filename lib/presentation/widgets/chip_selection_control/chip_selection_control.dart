@@ -102,7 +102,11 @@ class ChipSelectionControl extends StatelessWidget {
                       controller.add(trimmedValue);
                     });
                   } else if (trimmedValue.isNotEmpty) {
-                    valueFocusNode.requestFocus();
+                    externalFocusNode?.requestFocus();
+
+                    Timer.run(() {
+                      valueFocusNode.requestFocus();
+                    });
                   }
                 },
               ),
